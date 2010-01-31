@@ -28,7 +28,8 @@ var server = http.createServer(function (client_request, client_resp) {
 
   var host;
   var path;
-  client_request.uri.full.replace(/http:\/\/([^\/]*)(.*)/, function(m, h, p) {
+
+  client_request.url.replace(/http:\/\/([^\/]*)(.*)/, function(m, h, p) {
     host = h;
     path = p;
   });
