@@ -24,7 +24,7 @@ var sys = require('sys'),
     http = require('http');
 
 var server = http.createServer(function (client_request, client_resp) {
-  //sys.puts(sys.inspect(client_request.headers));
+  // sys.puts(sys.inspect(client_request.headers));
 
   var host;
   var path;
@@ -36,31 +36,31 @@ var server = http.createServer(function (client_request, client_resp) {
 
   path = path || '/';
 
-  //sys.puts(client_request.method + " " + host + " " + path);
+  // sys.puts(client_request.method + " " + host + " " + path);
   var foreign_host = http.createClient(80, host);
   var request = foreign_host.request(client_request.method, path, client_request.headers);
 
-  client_request.addListener("body", function (chunk) {
+  client_request.addListener("data", function (chunk) {
     request.sendBody(chunk);
-
   });
 
-  client_request.addListener("complete", function () {
-    request.finish(function (foreign_response) {
-      //sys.puts("STATUS: " + foreign_response.statusCode);
-      //sys.puts("HEADERS: " + JSON.stringify(foreign_response.headers));
+  client_request.addListener("end", function () {
+    request.on('response', function (foreign_response) {
+      // sys.puts("STATUS: " + foreign_response.statusCode);
+      // sys.puts("HEADERS: " + JSON.stringify(foreign_response.headers));
 
-      client_resp.sendHeader(foreign_response.statusCode, foreign_response.headers);
-      foreign_response.addListener("body", function (chunk) {
-        client_resp.sendBody(chunk, "binary");
+      client_resp.writeHead(foreign_response.statusCode, foreign_response.headers);
+      foreign_response.addListener("data", function (chunk) {
+        client_resp.write(chunk, "binary");
       });
-      foreign_response.addListener("complete", function (chunk) {
-        client_resp.finish();
+      foreign_response.addListener("end", function (chunk) {
+        client_resp.end();
       });
     });
+
+    request.end();
   });
 });
 
 server.listen(8000);
-sys.puts('Server running at http://127.0.0.1:8000/');
-
+sys.puts('Server running at http://127.0.0.1:8000');
